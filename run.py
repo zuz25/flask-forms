@@ -8,19 +8,24 @@ from wtforms import TextField, HiddenField, ValidationError, RadioField,\
 from wtforms.validators import Required, NumberRange
 import requests
 from flask.ext.appconfig import AppConfig
+import os
+from flask import Flask, request, redirect, url_for
+from werkzeug import secure_filename
 
+UPLOAD_FOLDER = "MCRconfigs"
+ALLOWED_EXTENSIONS = set(['mp3','wav'])
 
 class TelephoneForm(Form):
     country_code = IntegerField('Country Code', [validators.required()])
     area_code = IntegerField('Area Code/Exchange', [validators.required()])
     number = TextField('Number')
     
-    
+    #"C:\Users\bh680n\Documents\scripts\LearnForms\MCRconfigs"
 class ExampleForm(Form):
     url = TextField('URL', description='Enter URL to send recordings',validators=[Required()])
     user = TextField('Username', description='Enter Username for URL to support Basic Authentication',validators=[Required()])
     password = TextField('Password', description='Enter Password for URL to support Basic  Authentication',validators=[Required()])
-    beep = FileField('Sample upload')
+    beep = FileField('Beep File', description='.mp3 or .wav file to be played at a specified interval throughout the call',validators=[Required()])
     interval = IntegerField('Seconds between beeps', description='Enter the number of seconds between beeps 12-15s',validators=[NumberRange(min=12, max=15)])
     #hidden_field = HiddenField('You cannot see this', description='Nope')
     ##recaptcha = RecaptchaField('A sample recaptcha field')
@@ -55,6 +60,10 @@ class ExampleForm(Form):
 #        redirect('register')
 #    return render_response('register.html', form=form)
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+        
 def create_app(configfile=None):
     app = Flask(__name__)
     AppConfig(app, configfile)  # Flask-Appconfig is not necessary, but
@@ -66,19 +75,23 @@ def create_app(configfile=None):
     app.config['SECRET_KEY'] = 'devkey'
     #app.config['RECAPTCHA_PUBLIC_KEY'] = \
     #    '6Lfol9cSAAAAADAkodaYl9wvQCwBMr3qGR_PPHcw'
-
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     @app.route('/', methods=('GET', 'POST'))
     def index():
         form = ExampleForm()
         if form.validate_on_submit():
-            appSettings=appSettings()
-            appSettings.url=form.url.data
-            appSettings.password=form.password.data
-            appSettings.user=form.user.data
-            appSettings.interval=form.interval.data
-            appSettings.url=form.url.data
-            appSettings.url=form.url.data
-            # to get error messages to the browser
+            url=form.url.data
+            password=form.password.data
+            user=form.user.data
+            interval=form.interval.data
+            beep=form.beep
+            print(url+"\n"+password+"\n"+user+"\n"+str(interval))
+            print(beep.data.filename)
+            if beep.has_file and allowed_file(beep.data.filename):
+                print("If statement entered")
+                open(os.path.join(UPLOAD_FOLDER,beep.data.filename), 'w').write(beep.data.filename)
+                print("Filed Saved")
+                return render_template('index.html',form=form,filename=beep.data.filename)
         else:
             print(form.errors)
         #flash('critical message', 'critical')

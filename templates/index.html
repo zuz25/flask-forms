@@ -10,7 +10,9 @@
   <p>{{access_token}}</p>
 
     <h2>This is the sample form (basic)</h2>
-  {{ wtf.quick_form(form, button_map={'submit_button': 'primary'}) }}
+  {{ wtf.quick_form(form, button_map={'submit_button': 'primary'},enctype="multipart/form-data") }}
   
+  <h2>Filename</h2>
+  <p>{{filename}}</p>
 
 {% endblock %}
