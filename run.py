@@ -12,7 +12,9 @@ import os
 from flask import Flask, request, redirect, url_for
 from werkzeug import secure_filename
 
+
 UPLOAD_FOLDER = "MCRconfigs"
+
 ALLOWED_EXTENSIONS = set(['mp3','wav'])
 
 class TelephoneForm(Form):
@@ -60,6 +62,11 @@ class ExampleForm(Form):
 #        redirect('register')
 #    return render_response('register.html', form=form)
 
+def exists_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    return directory
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -89,7 +96,9 @@ def create_app(configfile=None):
             print(beep.data.filename)
             if beep.has_file and allowed_file(beep.data.filename):
                 print("If statement entered")
-                open(os.path.join(UPLOAD_FOLDER,beep.data.filename), 'w').write(beep.data.filename)
+                exists_directory(UPLOAD_FOLDER)
+                directory = exists_directory(os.path.join(UPLOAD_FOLDER,user))
+                open(os.path.join(directory,beep.data.filename), 'w').write(beep.data.filename)
                 print("Filed Saved")
                 return render_template('index.html',form=form,filename=beep.data.filename)
         else:
