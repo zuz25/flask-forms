@@ -17,15 +17,18 @@ UPLOAD_FOLDER = "MCRconfigs"
 
 ALLOWED_EXTENSIONS = set(['mp3','wav'])
 
+class UrlConfig(Form):
+    url = TextField('URL', description='Enter URL to send recordings',validators=[Required(),URL(require_tld=True, message=u'Invalid URL')])
+    user = TextField('Username', description='Enter Username for URL to support Basic Authentication',validators=[Required()])
+    password = PasswordField('Password', description='Enter Password for URL to support Basic  Authentication',validators=[Required(),EqualTo('confirm',message=u'Passwords must match')])
+    confirm = PasswordField('Confirm Password', description='Confirm Password for URL to support Basic  Authentication',validators=[Required()])
     
     #"C:\Users\bh680n\Documents\scripts\LearnForms\MCRconfigs"
 class ExampleForm(Form):
     apiAdminEmail = TextField('Email', description='Enter API Admin Email (Existing or desired)', validators=[Required(),Email(message=u'Invalid Email address')])
     applicationName = TextField('Name of Call Recording Configuration', description='Enter a name for the call recording configuration')
-    url = TextField('URL', description='Enter URL to send recordings',validators=[Required(),URL(require_tld=True, message=u'Invalid URL')])
-    user = TextField('Username', description='Enter Username for URL to support Basic Authentication',validators=[Required()])
-    password = PasswordField('Password', description='Enter Password for URL to support Basic  Authentication',validators=[Required(),EqualTo('confirm',message=u'Passwords must match')])
-    confirm = PasswordField('Confirm Password', description='Confirm Password for URL to support Basic  Authentication',validators=[Required()])
+    url1=FormField(UrlConfig)
+    url2=FormField(UrlConfig)
     notification = FileField('Initial Announcement audio file', description='.mp3 or .wav file of a notification to be played at start of call')
     beep = FileField('Intermittent tone audio file', description='.mp3 or .wav file to be played at a specified interval throughout the call')
     interval = IntegerField('Seconds between beeps', description='Enter the number of seconds between beeps 12-15s',validators=[NumberRange(min=12, max=15)])
@@ -69,14 +72,18 @@ def create_app(configfile=None):
     def index():
         form = ExampleForm()
         if form.validate_on_submit():
-            url=form.url.data
-            password=form.password.data
-            user=form.user.data
+            url1=form.url1.url.data
+            password1=form.url1.password.data
+            user1=form.url1.user.data
+            url2=form.url2.url.data
+            password2=form.url2.password.data
+            user2=form.url2.user.data
             interval=form.interval.data
             beep=form.beep
             notification=form.notification
             endCall=form.endCall
-            print(url+"\n"+password+"\n"+user+"\n"+str(interval))
+            f=open("applicationName_config.txt",'a')
+            f.write("url: "+url1+"\npassword: "+password1+"\nuser1: "+user1+"\ninterval: "+str(interval))
             print(beep.data.filename)
             applicationName=form.applicationName.data
             upload_file(beep,applicationName)
