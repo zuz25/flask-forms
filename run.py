@@ -26,10 +26,10 @@ class ExampleForm(Form):
     user = TextField('Username', description='Enter Username for URL to support Basic Authentication',validators=[Required()])
     password = PasswordField('Password', description='Enter Password for URL to support Basic  Authentication',validators=[Required(),EqualTo('confirm',message=u'Passwords must match')])
     confirm = PasswordField('Confirm Password', description='Confirm Password for URL to support Basic  Authentication',validators=[Required()])
-    notification = FileField('Initial Announcement', description='.mp3 or .wav file of a notification to be played at start of call')
-    beep = FileField('Beep File', description='.mp3 or .wav file to be played at a specified interval throughout the call')
+    notification = FileField('Initial Announcement audio file', description='.mp3 or .wav file of a notification to be played at start of call')
+    beep = FileField('Intermittent tone audio file', description='.mp3 or .wav file to be played at a specified interval throughout the call')
     interval = IntegerField('Seconds between beeps', description='Enter the number of seconds between beeps 12-15s',validators=[NumberRange(min=12, max=15)])
-    endCall = FileField('Beep File', description='.mp3 or .wav file to be played at the end of 90 mins to inform callers that call will end')
+    endCall = FileField('Call Ending Notification', description='.mp3 or .wav file to be played at the end of 90 mins to inform callers that call will end')
 
     submit_button = SubmitField('Submit Form')
 
@@ -41,13 +41,13 @@ def exists_directory(directory):
         os.makedirs(directory)
     return directory
 
-# def upload_file(file):
-#     if file.has_file and allowed_file(file.data.filename):
-#         exists_directory(UPLOAD_FOLDER)
-#         directory = exists_directory(os.path.join(UPLOAD_FOLDER,applicationName))
-#         open(os.path.join(directory,file.data.filename), 'w').write(file.data.filename)
-#         print(file.data.filename,"Saved")
-#         return file.data.filename
+def upload_file(file, applicationName):
+    if file.has_file and allowed_file(file.data.filename):
+        exists_directory(UPLOAD_FOLDER)
+        directory = exists_directory(os.path.join(UPLOAD_FOLDER,applicationName))
+        open(os.path.join(directory,file.data.filename), 'w').write(file.data.filename)
+        print(file.data.filename,"Saved")
+        return file.data.filename
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -74,16 +74,15 @@ def create_app(configfile=None):
             user=form.user.data
             interval=form.interval.data
             beep=form.beep
+            notification=form.notification
+            endCall=form.endCall
             print(url+"\n"+password+"\n"+user+"\n"+str(interval))
             print(beep.data.filename)
-            
-            if beep.has_file and allowed_file(beep.data.filename):
-                print("If statement entered")
-                exists_directory(UPLOAD_FOLDER)
-                directory = exists_directory(os.path.join(UPLOAD_FOLDER,user))
-                open(os.path.join(directory,beep.data.filename), 'w').write(beep.data.filename)
-                print("Filed Saved")
-                return render_template('index.html',form=form,filename=beep.data.filename)
+            applicationName=form.applicationName.data
+            upload_file(beep,applicationName)
+            upload_file(notification,applicationName)
+            upload_file(endCall,applicationName)
+            return render_template('index.html',form=form,beep=beep.data.filename,notification=notification.data.filename, endCall=notification.data.filename)
         else:
             print(form.errors)
         #flash('critical message', 'critical')
