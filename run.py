@@ -76,8 +76,8 @@ def create_app(configfile=None):
             beep=form.beep
             notification=form.notification
             endCall=form.endCall
-            print(url+"\n"+password+"\n"+user+"\n"+str(interval))
-            print(beep.data.filename)
+            for field in form:
+                print(str(field.name)+": "+str(field.data))
             applicationName=form.applicationName.data
             upload_file(beep,applicationName)
             upload_file(notification,applicationName)
